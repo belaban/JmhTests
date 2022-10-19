@@ -93,9 +93,9 @@ public class MyBenchmark {
         sh.recordValue(l);
     }
 
-    @TearDown(Level.Iteration)
+    /*@TearDown(Level.Iteration)
     public void showStats() {
         System.out.printf("avg: %s hist: %s, sh: %s, cch: %s, atomic: %s\n",
                           avg, h.getMean(), sh.getMean(), cch.getMean(), ath.getMean());
-    }
+    }*/
 }
