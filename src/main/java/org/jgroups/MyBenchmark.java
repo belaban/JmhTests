@@ -31,14 +31,39 @@
 
 package org.jgroups;
 
-import org.openjdk.jmh.annotations.Benchmark;
+import org.HdrHistogram.ConcurrentHistogram;
+import org.HdrHistogram.Histogram;
+import org.jgroups.util.AverageMinMax;
+import org.jgroups.util.Util;
+import org.openjdk.jmh.annotations.*;
 
+import java.util.concurrent.TimeUnit;
+
+/**
+ * Benchmarks {@link AverageMinMax} against Histogram
+ */
+@State(Scope.Benchmark)
+@Fork(value=1, warmups=2)
+@Warmup(iterations=10,time=1)
+@Timeout(time=10)
+@BenchmarkMode(Mode.AverageTime)
+@OutputTimeUnit(TimeUnit.NANOSECONDS)
 public class MyBenchmark {
 
+    protected final AverageMinMax avg=new AverageMinMax();
+    protected final Histogram h=new ConcurrentHistogram(1, 60_000, 3);
+
     @Benchmark
-    public void testMethod() {
-        // This is a demo/sample template for building your JMH benchmarks. Edit as needed.
-        // Put your benchmark code here.
+    public void testAverageMinMax() {
+        long l=Util.random(1000);
+        avg.add(l);
+    }
+
+
+    @Benchmark
+    public void testConcurrentHistogram() {
+        long l=Util.random(1000);
+        h.recordValue(l);
     }
 
 }
