@@ -59,6 +59,7 @@ public class MyBenchmark {
     protected final Histogram ath=new AtomicHistogram(1, 60_000, 3);
     protected final Histogram h=new Histogram(1, 60_000, 3);
     protected final Histogram sh=new SynchronizedHistogram(1, 60_000, 3);
+    protected static final int CAPACITY=2048;
 
     @Benchmark
     public void testAverageMinMax() {
@@ -104,6 +105,19 @@ public class MyBenchmark {
     public void testSynchronizedHistogram() {
         long l=Util.random(1000);
         sh.recordValue(l);
+    }
+
+    @Benchmark
+    public static int testModFunction() {
+        long seqno=Util.random(10000);
+        return (int)((seqno-1) % CAPACITY);
+    }
+
+    @Benchmark
+    public static int testModN2Function() {
+        long seqno=Util.random(10000);
+        int offset=0;
+        return (int)((seqno - offset - 1) & CAPACITY - 1);
     }
 
     /*@TearDown(Level.Iteration)
