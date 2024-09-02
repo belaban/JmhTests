@@ -40,6 +40,8 @@ import org.jgroups.util.Util;
 import org.openjdk.jmh.annotations.*;
 
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Benchmarks {@link AverageMinMax} against Histogram
@@ -60,6 +62,7 @@ public class MyBenchmark {
     protected final Histogram h=new Histogram(1, 60_000, 3);
     protected final Histogram sh=new SynchronizedHistogram(1, 60_000, 3);
     protected static final int CAPACITY=2048;
+    protected final Lock lock=new ReentrantLock();
 
     @Benchmark
     public void testAverageMinMax() {
@@ -117,6 +120,17 @@ public class MyBenchmark {
         long seqno=Util.random(10000);
         int offset=0;
         return (int)((seqno - offset - 1) & CAPACITY - 1);
+    }
+
+    @Benchmark
+    public void testLock() {
+        lock.lock();
+        try {
+            ;
+        }
+        finally {
+            lock.unlock();
+        }
     }
 
     /*@TearDown(Level.Iteration)
