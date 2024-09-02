@@ -40,6 +40,7 @@ import org.jgroups.util.Util;
 import org.openjdk.jmh.annotations.*;
 
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -63,6 +64,7 @@ public class MyBenchmark {
     protected final Histogram sh=new SynchronizedHistogram(1, 60_000, 3);
     protected static final int CAPACITY=2048;
     protected final Lock lock=new ReentrantLock();
+    protected final LongAdder la=new LongAdder();
 
     @Benchmark
     public void testAverageMinMax() {
@@ -131,6 +133,12 @@ public class MyBenchmark {
         finally {
             lock.unlock();
         }
+    }
+
+    @Benchmark
+    public void testLongAdder() {
+        long num=Util.random(1000);
+        la.add(num);
     }
 
     /*@TearDown(Level.Iteration)
