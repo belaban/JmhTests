@@ -80,7 +80,6 @@ public class MyBenchmark {
         }
     }
 
-
     @Benchmark
     public void testConcurrentHistogram() {
         long l=Util.random(1000);
