@@ -73,15 +73,6 @@ public class MyBenchmark {
     }
 
     @Benchmark
-    public void testAverageMinMaxMultipleNumbers() {
-        long[] numbers={Util.random(1000), Util.random(1000),Util.random(1000),
-          Util.random(1000),Util.random(1000),Util.random(1000)};
-        for(long n: numbers)
-            if(n > 0)
-                avg.add(n);
-    }
-
-    @Benchmark
     public void testConcurrentHistogram() {
         long l=Util.random(1000);
         cch.recordValue(l);
