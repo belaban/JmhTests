@@ -69,20 +69,16 @@ public class MyBenchmark {
     @Benchmark
     public void testAverageMinMax() {
         long l=Util.random(1000);
-        synchronized(avg) {
-            avg.add(l);
-        }
+        avg.add(l);
     }
 
     @Benchmark
     public void testAverageMinMaxMultipleNumbers() {
         long[] numbers={Util.random(1000), Util.random(1000),Util.random(1000),
           Util.random(1000),Util.random(1000),Util.random(1000)};
-        synchronized(avg) {
-            for(long n: numbers)
-                if(n > 0)
-                    avg.add(n);
-        }
+        for(long n: numbers)
+            if(n > 0)
+                avg.add(n);
     }
 
     @Benchmark
