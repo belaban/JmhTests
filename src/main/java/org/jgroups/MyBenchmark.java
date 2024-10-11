@@ -35,14 +35,19 @@ import org.HdrHistogram.AtomicHistogram;
 import org.HdrHistogram.ConcurrentHistogram;
 import org.HdrHistogram.Histogram;
 import org.HdrHistogram.SynchronizedHistogram;
+import org.jgroups.protocols.TpHeader;
 import org.jgroups.util.AverageMinMax;
 import org.jgroups.util.Util;
 import org.openjdk.jmh.annotations.*;
 
+import java.lang.reflect.Constructor;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Supplier;
 
 /**
  * Benchmarks {@link AverageMinMax} against Histogram
@@ -65,6 +70,20 @@ public class MyBenchmark {
     protected static final int CAPACITY=2048;
     protected final Lock lock=new ReentrantLock();
     protected final LongAdder la=new LongAdder();
+    protected final Map<Integer,Integer> map=new ConcurrentHashMap<>();
+    protected final Supplier<Header> supplier=TpHeader::new;
+    protected final Constructor<TpHeader> ctor=getCtor();
+
+
+    private Constructor<TpHeader> getCtor() {
+        try {
+            return TpHeader.class.getDeclaredConstructor();
+        }
+        catch(NoSuchMethodException e) {
+            return null;
+        }
+    }
+
 
     @Benchmark
     public void testAverageMinMax() {
@@ -126,6 +145,26 @@ public class MyBenchmark {
     public void testLongAdder() {
         long num=Util.random(1000);
         la.add(num);
+    }
+
+    // This is MUCH faster then using the constructor (via reflection) below! Ca 10x faster! 6ns vs 60ns
+    @Benchmark
+    public void testSupplier() {
+        Header hdr=supplier.get();
+        if(hdr == null)
+            System.out.printf("header is null: %s\n", hdr);
+    }
+
+    @Benchmark
+    public void testCtor() {
+        try {
+            Header hdr=ctor.newInstance();
+            if(hdr == null)
+                System.out.printf("header is null: %s\n", hdr);
+        }
+        catch(Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /*@TearDown(Level.Iteration)
