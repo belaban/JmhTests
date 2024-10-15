@@ -37,10 +37,13 @@ import org.HdrHistogram.Histogram;
 import org.HdrHistogram.SynchronizedHistogram;
 import org.jgroups.protocols.TpHeader;
 import org.jgroups.util.AverageMinMax;
+import org.jgroups.util.FastArray;
 import org.jgroups.util.Util;
 import org.openjdk.jmh.annotations.*;
 
 import java.lang.reflect.Constructor;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -48,6 +51,8 @@ import java.util.concurrent.atomic.LongAdder;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * Benchmarks {@link AverageMinMax} against Histogram
@@ -58,7 +63,7 @@ import java.util.function.Supplier;
 // @Timeout(time=5)
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
-@Measurement(iterations=1,time=10)
+@Measurement(iterations=5,time=10)
 @Threads(100)
 public class MyBenchmark {
 
@@ -73,6 +78,8 @@ public class MyBenchmark {
     protected final Map<Integer,Integer> map=new ConcurrentHashMap<>();
     protected final Supplier<Header> supplier=TpHeader::new;
     protected final Constructor<TpHeader> ctor=getCtor();
+    protected final List<Integer> array_list=new ArrayList<>(IntStream.range(1, 1000).boxed().collect(Collectors.toList()));
+    protected final List<Integer> fast_array=new FastArray<>(create(1000), 1000);
 
 
     private Constructor<TpHeader> getCtor() {
@@ -84,6 +91,12 @@ public class MyBenchmark {
         }
     }
 
+    private static Integer[] create(int num) {
+        List<Integer> list=new ArrayList<>();
+        for(int i=1; i <= num; i++)
+            list.add(i);
+        return list.toArray(new Integer[0]);
+    }
 
     @Benchmark
     public void testAverageMinMax() {
@@ -167,9 +180,61 @@ public class MyBenchmark {
         }
     }
 
-    /*@TearDown(Level.Iteration)
-    public void showStats() {
-        System.out.printf("avg: %s hist: %s, sh: %s, cch: %s, atomic: %s\n",
-                          avg, h.getMean(), sh.getMean(), cch.getMean(), ath.getMean());
-    }*/
+    @Benchmark
+    public static int testArrayListWithResize() {
+        List<Integer> list=new ArrayList<>(128);
+        return testArray(list);
+    }
+
+    @Benchmark
+    public static int testArrayListNoResize() {
+        List<Integer> list=new ArrayList<>(1024);
+        return testArray(list);
+    }
+
+    @Benchmark
+    public static int testFastArrayWithResize() {
+        List<Integer> list=new FastArray<>(128); // 512).increment(512);
+        return testArray(list);
+    }
+
+    @Benchmark
+    public static int testFastArrayNoResize() {
+        List<Integer> list=new FastArray<>(1024);
+        return testArray(list);
+    }
+
+    @Benchmark
+    public int testExistingArrayListSize() {
+        return array_list.size();
+    }
+
+    @Benchmark
+    public int testExistingFastArraySize() {
+        return fast_array.size();
+    }
+
+    @Benchmark
+    public int testExistingArrayListIteration() {
+        int count=0;
+        for(Integer __: array_list)
+            count++;
+        return count;
+    }
+
+    @Benchmark
+    public int testExistingFastArrayIteration() {
+        int count=0;
+        for(Integer __: fast_array)
+            count++;
+        return count;
+    }
+
+    protected static int testArray(List<Integer> list) {
+        for(int i=1; i <= 1000; i++)
+            list.add(i);
+        int size=list.size();
+        list.clear();
+        return size;
+    }
 }
