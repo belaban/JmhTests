@@ -45,11 +45,15 @@ import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.SplittableRandom;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.IntBinaryOperator;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -80,7 +84,16 @@ public class MyBenchmark {
     protected final Constructor<TpHeader> ctor=getCtor();
     protected final List<Integer> array_list=new ArrayList<>(IntStream.range(1, 1000).boxed().collect(Collectors.toList()));
     protected final List<Integer> fast_array=new FastArray<>(create(1000), 1000);
-
+    protected final SplittableRandom random=new SplittableRandom();
+    protected final AtomicInteger acc=new AtomicInteger();
+    protected static final int MAX=100;
+    protected int num=0;
+    protected final IntBinaryOperator OP=(l, __) -> {
+        if(l+1 >= MAX)
+            return 0;
+        else
+            return l+1;
+    };
 
     private Constructor<TpHeader> getCtor() {
         try {
@@ -228,6 +241,34 @@ public class MyBenchmark {
         for(Integer __: fast_array)
             count++;
         return count;
+    }
+
+    @Benchmark
+    public static int testThreadLocalRandom() {
+        return ThreadLocalRandom.current().nextInt(100) + 1;
+    }
+
+    @Benchmark
+    public int testSplittableRandom() {
+        return random.nextInt(1, 100);
+    }
+
+    @Benchmark
+    public int testAccumulateAndGet() {
+        return acc.accumulateAndGet(1, OP);
+    }
+
+    @Benchmark
+    public int testAccumulateAndGetViaLock() {
+        lock.lock();
+        try {
+            if(num >= MAX)
+                return num=0;
+            return num++;
+        }
+        finally {
+            lock.unlock();
+        }
     }
 
     protected static int testArray(List<Integer> list) {
