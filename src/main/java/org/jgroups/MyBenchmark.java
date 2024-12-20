@@ -74,7 +74,7 @@ public class MyBenchmark {
     protected final AverageMinMax avg=new AverageMinMax(1000);
     protected final Histogram cch=new ConcurrentHistogram(1, 60_000, 3);
     protected final Histogram ath=new AtomicHistogram(1, 60_000, 3);
-    protected final Histogram h=new Histogram(1, 60_000, 3);
+    protected final Histogram h=new Histogram(1, 60_000, 2);
     protected final Histogram sh=new SynchronizedHistogram(1, 60_000, 3);
     protected static final int CAPACITY=2048;
     protected final Lock lock=new ReentrantLock();
