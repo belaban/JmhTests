@@ -31,7 +31,7 @@
         <dependency>
             <groupId>org.jgroups</groupId>
             <artifactId>jgroups</artifactId>
-            <version>5.4.0.Final-SNAPSHOT</version>
+            <version>5.4.5.Final</version>
         </dependency>
 
         <dependency>
