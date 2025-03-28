@@ -42,10 +42,7 @@ import org.jgroups.util.Util;
 import org.openjdk.jmh.annotations.*;
 
 import java.lang.reflect.Constructor;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.SplittableRandom;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
@@ -87,6 +84,7 @@ public class MyBenchmark {
     protected final SplittableRandom random=new SplittableRandom();
     protected final AtomicInteger acc=new AtomicInteger();
     protected static final int MAX=100;
+    protected static final Address A=Util.createRandomAddress("A"), B=A, C=Util.createRandomAddress("C");
     protected int num=0;
     protected final IntBinaryOperator OP=(l, __) -> {
         if(l+1 >= MAX)
@@ -269,6 +267,16 @@ public class MyBenchmark {
         finally {
             lock.unlock();
         }
+    }
+
+    @Benchmark
+    public boolean testAddressComparisonSame() {
+        return Objects.equals(A, B);
+    }
+
+    @Benchmark
+    public boolean testAddressComparisonEquals() {
+        return Objects.equals(A,C);
     }
 
     protected static int testArray(List<Integer> list) {
