@@ -279,6 +279,20 @@ public class MyBenchmark {
         return Objects.equals(A,C);
     }
 
+    @Benchmark
+    public boolean testComputeIfAbsent() {
+        Integer result=map.computeIfAbsent(322649, key -> key + 1);
+        return result != null;
+    }
+
+    @Benchmark
+    public boolean testComputeIfAbsentWithGet() {
+        Integer result=map.get(322649);
+        if(result == null)
+            result=map.computeIfAbsent(322649, key -> key + 1);
+        return result != null;
+    }
+
     protected static int testArray(List<Integer> list) {
         for(int i=1; i <= 1000; i++)
             list.add(i);
