@@ -40,7 +40,10 @@ import org.jgroups.util.AverageMinMax;
 import org.jgroups.util.FastArray;
 import org.jgroups.util.Util;
 import org.openjdk.jmh.annotations.*;
+import org.openjdk.jmh.infra.Blackhole;
 
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
 import java.lang.reflect.Constructor;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -92,6 +95,19 @@ public class MyBenchmark {
         else
             return l+1;
     };
+
+    protected static final VarHandle NUM;
+
+    static {
+        try {
+            NUM=MethodHandles.lookup()
+              .in(MyBenchmark.class)
+              .findVarHandle(MyBenchmark.class, "num", int.class);
+        }
+        catch(Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     private Constructor<TpHeader> getCtor() {
         try {
@@ -254,6 +270,16 @@ public class MyBenchmark {
     @Benchmark
     public int testAccumulateAndGet() {
         return acc.accumulateAndGet(1, OP);
+    }
+
+    @Benchmark
+    public void testAtomicIntegerIncrement(Blackhole bh) {
+        bh.consume(acc.getAndIncrement());
+    }
+
+    @Benchmark
+    public void testVarHandleIncrement(Blackhole bh) {
+        bh.consume((int)NUM.getAndAdd(this, 1));
     }
 
     @Benchmark
