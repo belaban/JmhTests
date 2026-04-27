@@ -37,6 +37,7 @@ import org.HdrHistogram.Histogram;
 import org.HdrHistogram.SynchronizedHistogram;
 import org.jgroups.protocols.TpHeader;
 import org.jgroups.stack.IpAddress;
+import org.jgroups.util.Average;
 import org.jgroups.util.AverageMinMax;
 import org.jgroups.util.FastArray;
 import org.jgroups.util.Util;
@@ -72,7 +73,8 @@ import java.util.stream.IntStream;
 @Threads(100)
 public class MyBenchmark {
 
-    protected final AverageMinMax avg=new AverageMinMax(1000);
+    protected final Average       avg=new Average(1000);
+    protected final AverageMinMax avg_mm=new AverageMinMax(1000);
     protected final Histogram cch=new ConcurrentHistogram(1, 60_000, 3);
     protected final Histogram ath=new AtomicHistogram(1, 60_000, 3);
     protected final Histogram h=new Histogram(1, 60_000, 2);
@@ -137,9 +139,15 @@ public class MyBenchmark {
     }
 
     @Benchmark
-    public void testAverageMinMax() {
+    public void testAverage() {
         long l=Util.random(1000);
         avg.add(l);
+    }
+
+    @Benchmark
+    public void testAverageMinMax() {
+        long l=Util.random(1000);
+        avg_mm.add(l);
     }
 
     @Benchmark
@@ -166,6 +174,11 @@ public class MyBenchmark {
     public void testSynchronizedHistogram() {
         long l=Util.random(1000);
         sh.recordValue(l);
+    }
+
+    @Benchmark
+    public long testRandom() {
+        return Util.random(1000);
     }
 
     @Benchmark
