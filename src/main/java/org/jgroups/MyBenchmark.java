@@ -36,6 +36,7 @@ import org.HdrHistogram.ConcurrentHistogram;
 import org.HdrHistogram.Histogram;
 import org.HdrHistogram.SynchronizedHistogram;
 import org.jgroups.protocols.TpHeader;
+import org.jgroups.stack.IpAddress;
 import org.jgroups.util.AverageMinMax;
 import org.jgroups.util.FastArray;
 import org.jgroups.util.Util;
@@ -80,6 +81,8 @@ public class MyBenchmark {
     protected final Lock lock=new ReentrantLock();
     protected final LongAdder la=new LongAdder();
     protected final Map<Integer,Integer> map=new ConcurrentHashMap<>();
+    protected final Map<Address,Integer> addr_map=new ConcurrentHashMap<>();
+    protected final Map<Address,Integer> phys_addr_map=new ConcurrentHashMap<>();
     protected final Supplier<Header> supplier=TpHeader::new;
     protected final Constructor<TpHeader> ctor=getCtor();
     protected final List<Integer> array_list=new ArrayList<>(IntStream.range(1, 1000).boxed().collect(Collectors.toList()));
@@ -88,6 +91,7 @@ public class MyBenchmark {
     protected final AtomicInteger acc=new AtomicInteger();
     protected static final int MAX=100;
     protected static final Address A=Util.createRandomAddress("A"), B=A, C=Util.createRandomAddress("C");
+    protected static final PhysicalAddress ADDR;
     protected int num=0;
     protected final IntBinaryOperator OP=(l, __) -> {
         if(l+1 >= MAX)
@@ -96,6 +100,12 @@ public class MyBenchmark {
             return l+1;
     };
 
+
+    public MyBenchmark() {
+        addr_map.put(A, 1);
+        phys_addr_map.put(ADDR, 1);
+    }
+
     protected static final VarHandle NUM;
 
     static {
@@ -103,6 +113,7 @@ public class MyBenchmark {
             NUM=MethodHandles.lookup()
               .in(MyBenchmark.class)
               .findVarHandle(MyBenchmark.class, "num", int.class);
+            ADDR=new IpAddress("127.0.0.1", 7777);
         }
         catch(Exception e) {
             throw new RuntimeException(e);
@@ -317,6 +328,18 @@ public class MyBenchmark {
         if(result == null)
             result=map.computeIfAbsent(322649, key -> key + 1);
         return result != null;
+    }
+
+    @Benchmark
+    public boolean testGetUUID() {
+        Integer addr=addr_map.get(A);
+        return addr != null;
+    }
+
+    @Benchmark
+    public boolean testGetIpAddress() {
+        Integer addr=phys_addr_map.get(ADDR);
+        return addr != null;
     }
 
     protected static int testArray(List<Integer> list) {
