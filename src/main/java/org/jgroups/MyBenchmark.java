@@ -47,6 +47,7 @@ import org.openjdk.jmh.infra.Blackhole;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
 import java.lang.reflect.Constructor;
+import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
@@ -72,7 +73,6 @@ import java.util.stream.IntStream;
 @Measurement(iterations=5,time=10)
 @Threads(100)
 public class MyBenchmark {
-
     protected final Average       avg=new Average(1000);
     protected final AverageMinMax avg_mm=new AverageMinMax(1000);
     protected final Histogram cch=new ConcurrentHistogram(1, 60_000, 3);
@@ -95,6 +95,13 @@ public class MyBenchmark {
     protected static final Address A=Util.createRandomAddress("A"), B=A, C=Util.createRandomAddress("C");
     protected static final PhysicalAddress ADDR;
     protected int num=0;
+    protected final ByteBuffer direct_buf=ByteBuffer.allocateDirect(60000);
+    protected final ByteBuffer heap_buf=ByteBuffer.allocate(60000);
+    protected final byte[][] payloads={new byte[10], new byte[100], new byte[1000], new byte[10_000], new byte[40_000]};
+
+    @Param({"0", "1", "2", "3", "4"})
+    protected int index;
+
     protected final IntBinaryOperator OP=(l, __) -> {
         if(l+1 >= MAX)
             return 0;
@@ -353,6 +360,20 @@ public class MyBenchmark {
     public boolean testGetIpAddress() {
         Integer addr=phys_addr_map.get(ADDR);
         return addr != null;
+    }
+
+    @Benchmark
+    public int testAllocate() {
+        byte[] tmp=payloads[index];
+        heap_buf.put(0, tmp, 0, tmp.length);
+        return heap_buf.position();
+    }
+
+    @Benchmark
+    public int testAllocateDirect() {
+        byte[] tmp=payloads[index];
+        direct_buf.put(0, tmp, 0, tmp.length);
+        return direct_buf.position();
     }
 
     protected static int testArray(List<Integer> list) {
