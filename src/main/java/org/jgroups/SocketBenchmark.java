@@ -113,7 +113,7 @@ public class SocketBenchmark {
         switch(buffer_type) {
             case BYTE_ARRAY:
                 out.write(byte_array, 0, byte_array.length);
-                out.flush();
+                // out.flush();
                 break;
             case HEAP_BB:
             case DIRECT_BB:
