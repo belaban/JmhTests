@@ -97,6 +97,7 @@ public class MyBenchmark {
     protected int num=0;
     protected final ByteBuffer direct_buf=ByteBuffer.allocateDirect(60000);
     protected final ByteBuffer heap_buf=ByteBuffer.allocate(60000);
+    protected final byte[] byte_array=new byte[60000];
     protected final byte[][] payloads={new byte[10], new byte[100], new byte[1000], new byte[10_000], new byte[40_000]};
 
     @Param({"0", "1", "2", "3", "4"})
@@ -363,17 +364,24 @@ public class MyBenchmark {
     }
 
     @Benchmark
-    public int testAllocate() {
+    public int testWriteToHeapBuffer() {
         byte[] tmp=payloads[index];
         heap_buf.put(0, tmp, 0, tmp.length);
         return heap_buf.position();
     }
 
     @Benchmark
-    public int testAllocateDirect() {
+    public int testWriteToDirectBuffer() {
         byte[] tmp=payloads[index];
         direct_buf.put(0, tmp, 0, tmp.length);
         return direct_buf.position();
+    }
+
+    @Benchmark
+    public int testWriteToByteArray() {
+        byte[] tmp=payloads[index];
+        System.arraycopy(tmp, 0, byte_array, 0, tmp.length);
+        return tmp.length;
     }
 
     protected static int testArray(List<Integer> list) {
