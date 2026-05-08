@@ -92,13 +92,13 @@ public class SocketBenchmark {
                 break;
             case HEAP_BB:
             case DIRECT_BB:
-                nio_srv=new NioServer(Util.getLoopback(), 7600);
+                nio_srv=new NioServer(Util.getLoopback(), 7500);
                 nio_srv.receiveBufferSize(RECV_BUF).sendBufferSize(SND_BUF);
                 nio_srv.start();
                 buf=buffer_type.equals(HEAP_BB)? ByteBuffer.allocate(size+4)
                   : ByteBuffer.allocateDirect(size+4);
                 buf.putInt(size);
-                sock_ch=SocketChannel.open(new InetSocketAddress(Util.getLoopback(), 7600));
+                sock_ch=SocketChannel.open(new InetSocketAddress(Util.getLoopback(), 7500));
                 break;
         }
     }
