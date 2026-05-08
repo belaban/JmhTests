@@ -68,13 +68,12 @@ public class SocketBenchmark {
     protected ByteBuffer    buf;
     protected final Lock    lock=new ReentrantLock();
     protected static final String BYTE_ARRAY="byte_array", HEAP_BB="heap_bb", DIRECT_BB="direct_bb";
-    protected static final int SND_BUF=150_000, RECV_BUF=200_000;
+    protected static final int SND_BUF=5_000_000, RECV_BUF=5_000_000;
 
     @Param({BYTE_ARRAY, HEAP_BB, DIRECT_BB})
     public  String       buffer_type;
 
-    // @Param({"100", "1000", "10000", "40000"})
-    @Param("1000")
+    @Param({"100", "1000", "10000", "40000"})
     protected int        size;
 
     @Setup
@@ -87,7 +86,7 @@ public class SocketBenchmark {
                 byte_array=new byte[size+4]; // buf is preceeded by length
                 Bits.writeInt(byte_array.length, byte_array, 0);
                 sock=new Socket(Util.getLoopback(), 7500);
-                sock.setSendBufferSize(130000);
+                sock.setSendBufferSize(SND_BUF);
                 out=new DataOutputStream(new BufferedOutputStream(sock.getOutputStream(), 8192));
                 break;
             case HEAP_BB:
